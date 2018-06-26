@@ -126,6 +126,8 @@ class IFCalender {
                                 $week_index++;
                                 continue;
                             } else {
+                                $d = $this->weekday_names[ $week_index ];
+                                
                                 if($starting_day <= $max_days) {
                                     if ( !isset($data[ $i ]['months'][ $b ][ 'calender' ][ $starting_day ]) ) {
                                         $data[ $i ]['months'][ $b ][ 'calender' ][ $starting_day ] = $d;
@@ -140,7 +142,7 @@ class IFCalender {
                             $data[ $i ]['months'][ $b ][ 'weeks' ][ $d ][] = $starting_day;
                         }
                         $starting_day++;
-                        $week_index = ($c + 1);
+                        $week_index++;
                         $week_index = ($week_index > 6) ? 0 : $week_index;
                     }
                 }
@@ -157,6 +159,58 @@ class IFCalender {
         
     }
     
+    /**
+     * Function to get calender html of set year
+     *
+     * @Created	26-June-2018
+     * @param	none
+     * @return	calender html
+     */
+    public function get_calender_html() {
+        $year = $this->get_year();
+        
+        $html = '';
+        
+        if( isset( $this->calender[ $year ]['months'] )  ) {
+            $year_data = $this->calender[ $year ]['months'];
+            
+            
+            $html = '<h1>Calender For the year of ' . $year . '</h1><table class="calender_table" border="0" width="100%">';
+            $row_val = 4;
+            foreach( $year_data as $month => $month_arr ) {
+                
+                $row_val = ( $row_val % 4 );
+                
+                $html .= '<tr>';
+                
+                $html .= '<td width="10%">' . $month . '</td>';
+                $html .= '<td width="90%">';
+                $html .= '<table border="0" width="100%">';
+                $html .= '<tr>';
+                $html .= '<td width="4%">Date</td>';
+                foreach( $month_arr['calender'] as $day_name => $week_name) {
+                    $html .= '<td width="4%">'. $day_name .'</td>';
+                }
+                $html .= '</tr>';
+                $html .= '<tr>';
+                $html .= '<td width="4%">Day</td>';
+                foreach( $month_arr['calender'] as $day_name => $week_name) {
+                    $html .= '<td width="4%">'. substr($week_name, 0, 3) .'</td>';
+                }
+                $html .= '</tr>';
+                $html .= '</table>';
+                $html .= '</td>';
+                
+                $html .= '</tr>';
+                $row_val++;
+                
+                
+            }
+            
+            $html .= '</table>';
+        }
+        return $html;
+    }
     
     
     /**
@@ -347,11 +401,12 @@ class IFCalender {
 
 $input_date = isset($_GET['date']) ? $_GET['date'] : '';
 $date_type = isset($_GET['date_type']) ? $_GET['date_type'] : '1';
-$output = $month_names = '';
+$output = $month_names = $calender_html = '';
 
 if($input_date!= '') {
     $ifc_class = new IFCalender($input_date, $date_type);
     $new_date = $ifc_class->get_new_date();
+    $calender_html = $ifc_class->get_calender_html();
     $month_names = implode(", ", $ifc_class->month_names);
     $output = $new_date;
 } else {
@@ -373,7 +428,7 @@ if($input_date!= '') {
         text-align: center;
         padding: 10px;
     }
-    table {
+    table.form_table {
         padding: 10px;
         font-size: 13px;
         display: block;
@@ -381,13 +436,24 @@ if($input_date!= '') {
         margin: 0 auto;
         background: #fafafa;
     }
-    table td{
+    table.form_table td{
         padding: 7px;
+    }
+    table.calender_table {
+        font-size: 13px;
+        background: #fafafa;
+        border: solid 0px #666;
+        width: 100%
+    }
+    table.calender_table td {
+        padding: 3px;
+        border: solid 1px #666;
+        font-size: 13px;
     }
 </style>
 <form method="get" action="?date=<?php echo $input_date?>&date_type=<?php echo $date_type?>">
     <h1>Custom calendar Script</h1>
-    <table border="0" cellpadding='2' cellspacing='2'>
+    <table class="form_table" border="0" cellpadding='2' cellspacing='2'>
         <tr>
             <td width="20%">Enter Date</td>
             <td><input type="text" name="date" value="<?php echo $input_date?>" /> (date Format : YYYY-mm-dd)</td>
@@ -411,4 +477,5 @@ if($input_date!= '') {
         </tr>
         <?php }?>
     </table>
+    <?php echo $calender_html?>
 </form>
